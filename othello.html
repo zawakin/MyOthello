@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+  <head>
+
+    <meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>オセロのページ</title>
+    <script src="./js/jquery-3.2.1.min.js" charset="utf-8"></script>
+    <script src="./js/othello_new.js" charset="utf-8"></script>
+	<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+
+  </head>
+  <body>
+	<script>
+		var ww = window.innerWidth;
+	</script>
+	<div class="w3-display-container" style="max-width: 600px; width: 600px;">
+		
+		<canvas id="cnvs" width=600 height=600 class="w3-opacity"></canvas>
+		<div class="w3-display-middle w3-center">
+			<button class="w3-btn w3-xxlarge w3-light-grey w3-margin startbtn" id="vsHuman">人と対戦する</button>
+			<button class="w3-btn w3-xxlarge w3-light-grey w3-margin startbtn" id="vsCPU">CPUと対戦する</button>
+			
+			<button class="w3-btn w3-xxlarge w3-light-grey w3-margin cpubtn" id="vsCPU1" style="display: none;">vsレベル１</button>
+			<button class="w3-btn w3-xxlarge w3-light-grey w3-margin cpubtn" id="vsCPU2" style="display: none;">vsレベル２</button>
+			<button class="w3-btn w3-xxlarge w3-light-grey w3-margin cpubtn" id="vsCPU3" style="display: none;">vsレベル３</button>
+			<div class="w3-panel w3-indigo simulation" style="display: none;">
+				<label class="w3-xxlarge w3-margin" id="label_sim"></label>
+			</div>
+			<button class="w3-btn w3-xxlarge w3-light-grey w3-margin startbtn simulation" id="CPUvsCPU">CPU同士を1000局戦わせる</button>
+		</div>
+		<div class="w3-display-bottom w3-center">
+			<button class="w3-btn w3-large w3-light-grey w3-margin simulation cpubtn" id="back" style="display: none;">メニューに戻る</button>
+		</div>
+		
+	</div>		
+	</div>
+  </body>
+</html>
