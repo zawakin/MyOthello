@@ -141,13 +141,16 @@ $(function () {
         }
         update(mouse) {
             this.update_mouse(mouse);
+			this.click();
         }
 		click(){
+			if(!clicked) return;
 			if (0 <= this.Imouse.xi
 				& this.Imouse.xi < this.Nsize & 0 <= this.Imouse.yi & this.Imouse.yi < this.Nsize) {
 				// ボードの中でクリックされたとき
 				this.maneger.get_hand_from_gui(this.Imouse);
 			}
+			clicked = false;
 		}
         update_mouse(mouse) {
             this.mouse.x = mouse.x;
@@ -924,12 +927,8 @@ $(function () {
         mouse_global.x = x;
         mouse_global.y = y;
     });
-	function click_event(maneger){
-		maneger.gui.click();
-	}
     cnvs.click(() => {
         clicked = true;
-		setTimeout(click_event, 0, maneger);
     });
     $("#vsHuman").click(() => {
         maneger.start_human();
