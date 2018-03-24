@@ -92,7 +92,7 @@ $(function () {
                 var ctx = this.ctx;
                 ctx.fillStyle = "red";
                 ctx.textAlign = "center";
-                ctx.font = "100px sans-serif";
+                ctx.font = "50px sans-serif";
                 ctx.fillText(ss + ": Pass", this.width / 2, this.width / 2, 1000);
                 this.passtimer -= 1;
             }
@@ -105,7 +105,7 @@ $(function () {
                 var ctx = this.ctx;
                 ctx.fillStyle = "red";
                 ctx.textAlign = "center";
-                ctx.font = "100px sans-serif";
+                ctx.font = "50px sans-serif";
                 ctx.fillText(ss, this.width / 2, this.width / 2, 1000);
                 this.finishtimer -= 1;
                 if (this.finishtimer == 1) {
