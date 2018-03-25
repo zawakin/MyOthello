@@ -271,7 +271,6 @@ $(function () {
 						this.update_to_next();
 					}else{
 						function Temp(maneger, player){
-							console.log("temp");
 							var te = player.think();
 							maneger.game.put_disc({ xi: te[0], yi: te[1] });
 							maneger.update_to_next();
@@ -614,7 +613,7 @@ $(function () {
             this.n = n;
         }
         think() {
-            var nmax = 2000;
+            var nmax = 3000;
             var n_total = 0;
             var bf = new BoardFuture(this.game.board, this.game.turn, this.game.Nsize);
             var origin = new Node(null, bf, this.game.turn);
@@ -631,9 +630,19 @@ $(function () {
                 node.update(result);
             }
             var maxi = origin.getIndexMaxN();
-            console.log(" ==================== ");
-            console.log("maxi = ", maxi);
-            origin.printAllTree(2);
+			var maxchild = origin.children[maxi];
+			console.log("");
+			for(var i=0; i<origin.children.length; i++){
+				var child = origin.children[i];
+				var r = child.results[this.game.turn] / child.n;
+				if(maxi == i) console.log(" ===============↓↓↓↓↓↓↓↓=============== ");
+				console.log("勝率： " + r + "     win = " + child.results[this.game.turn] + " n = " + child.n);
+				if(r == 0) r = 0.0001;
+				if(r == 1) r = 1 - 0.0001;
+				console.log("評価値: " + ( -600 * Math.log((1-r) / r)));
+				if(maxi == i) console.log(" ===============↑↑↑↑↑↑↑↑=============== ");
+			}
+            //origin.printAllTree(2);
             return bf.okeru[maxi];
         }
     }
@@ -647,7 +656,7 @@ $(function () {
             this.results = [0, 0, 0];
             this.n = 0;  //そのノードの試行回数
             this.n_total = 0;  //兄弟ノードの試行回数の合計。
-            this.thres = 40;
+            this.thres = 30;
             this.bf = bf;
             this.isleaf = true; // expand時にfalseにする
             this.hashi = false;
@@ -656,6 +665,7 @@ $(function () {
                 this.isorigin = true;
             } else {
                 this.depth = this.parent.depth + 1;
+				console.log(this.depth);
                 this.isorigin = false;
             }
             this.ucb1 = this.calc_ucb1();
@@ -710,9 +720,20 @@ $(function () {
             }
             var win = this.results[3 - this.myturn];　// そのノードでの勝ち。相手は最善を打つ。
             var n = this.n;
-            if(n == 0) return 400000;
+            //if(n < 5) return 400000;
 			
-            var ucb1 = win / n + 0.4 * Math.sqrt(2 * Math.log(n_total) / this.n);
+			var C = 0.4;
+			
+			if(this.bf.count_all_piece() < 40){
+				//序盤はまんべんなく読む
+				if(n <= 5) return 5;
+			}else{
+				//終盤は良い手を深く読む
+				if(n <= 5) return 5;
+			}
+			
+			
+            var ucb1 = win / n + C * Math.sqrt(2 * Math.log(n_total) / this.n);
 			//if(this.te != null && this.bf.isYosumi(this.te)) ucb1 += 5;
 			return ucb1;
         }
@@ -721,10 +742,6 @@ $(function () {
             var maxi = -1;
             for (var i = 0; i < this.children.length; i++) {
                 var child = this.children[i];
-                if (child.n == 0) {
-                    maxi = i;
-                    break;
-                }
                 if (val < child.ucb1) {
                     val = child.ucb1;
                     maxi = i;
@@ -905,6 +922,17 @@ $(function () {
             }
             return okeru.length;
         }
+		count_all_piece(){
+			var count = 0;
+            for (var yi = 0; yi < this.Nsize; yi++) {
+                for (var xi = 0; xi < this.Nsize; xi++) {
+                    if (this.board[yi][xi] != TURN.NONE) {
+                        count += 1;
+                    }
+                }
+            }
+			return count;
+		}
         update_okeru() {
             this.okeru = [];
             for (var yi = 0; yi < this.Nsize; yi++) {
