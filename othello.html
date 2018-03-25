@@ -8,6 +8,17 @@
     <script src="./js/jquery-3.2.1.min.js" charset="utf-8"></script>
     <script src="./js/othello.js" charset="utf-8"></script>
 	<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+	<style>
+		.startbtn{
+			font-size: 4vw;
+		}
+		.cpubtn{
+			font-size: 3vw;
+		}
+		p{
+			font-size: 16px;
+		}
+	</style>
   </head>
   <body>
 	<script>
@@ -17,21 +28,37 @@
 		
 		<canvas id="cnvs" width=600 height=600 class="w3-opacity"></canvas>
 		<div class="w3-display-middle w3-center">
-			<button class="w3-btn w3-xlarge w3-light-grey w3-margin startbtn" id="vsHuman">人と対戦する</button>
-			<button class="w3-btn w3-xlarge w3-light-grey w3-margin startbtn" id="vsCPU">CPUと対戦する</button>
-			
-			<button class="w3-btn w3-xlarge w3-light-grey w3-margin cpubtn" id="vsCPU1" style="display: none;">vsレベル１</button>
-			<button class="w3-btn w3-xlarge w3-light-grey w3-margin cpubtn" id="vsCPU2" style="display: none;">vsレベル２</button>
-			<button class="w3-btn w3-xlarge w3-light-grey w3-margin cpubtn" id="vsCPU3" style="display: none;">vsレベル３</button>
+			<button class="w3-btn w3-light-grey w3-margin startbtn" id="vsHuman">人と対戦する</button>
+			<button class="w3-btn w3-light-grey w3-margin startbtn" id="vsCPU">CPUと対戦する</button>
+			<button class="w3-btn w3-light-grey w3-margin startbtn" id="CPUvsCPU">CPU同士を1000局戦わせる</button>
+		</div>
+		<div class="w3-display-topmiddle w3-center">
+			<button class="w3-btn w3-light-grey w3-margin cpubtn" id="vsCPU1" style="display: none;">vsレベル１ n=100</button>
+			<button class="w3-btn w3-light-grey w3-margin cpubtn" id="vsCPU2" style="display: none;">vsレベル２ n=1000</button>
+			<button class="w3-btn w3-light-grey w3-margin cpubtn" id="vsCPU3" style="display: none;">vsレベル３ n=3000</button>
+			<button class="w3-btn w3-light-grey w3-margin cpubtn" id="vsCPU4" style="display: none;">vsレベル４ n=10000</button>
+			<button class="w3-btn w3-light-grey w3-margin cpubtn" id="vsCPU5" style="display: none;">vsレベル５ n=20000</button>
+			<button class="w3-btn w3-light-grey w3-margin cpubtn" id="whatisn" style="display: none;">nとは？</button>
 			<div class="w3-panel w3-indigo simulation" style="display: none;">
 				<label class="w3-xlarge w3-margin" id="label_sim"></label>
+				<button class="w3-btn w3-light-grey w3-margin" id="again">もう一度</button>
 			</div>
-			<button class="w3-btn w3-xlarge w3-light-grey w3-margin startbtn simulation" id="CPUvsCPU">CPU同士を1000局戦わせる</button>
-		</div>
-		<div class="w3-display-bottom w3-center">
-			<button class="w3-btn w3-large w3-light-grey w3-margin simulation cpubtn" id="back" style="display: none;">メニューに戻る</button>
 		</div>
 		
-	</div>		
+
+	</div>			
+	<div class="w3-container w3-light-grey w3-padding" id="setsumei" style="display: none; position: fixed; top: 0px; max-width: 600px; width: 100%; overflow: auto; height: 100vh;">
+			<h4 class="w3-indigo w3-padding">"n"について</h4>
+			<p>このCPUは、「モンテカルロ木探索」という手法で探索をしています。基本的にモンテカルロアルゴリズムでは、候補手を打った局面からランダムプレイヤー同士が勝敗が付くまでシミュレーションを行います。これを<strong>プレイアウト</strong>と言います。各候補手についてプレイアウトをたくさん行うことで、勝率を求め、高い勝率の候補手を手として出力するようになっています。</p>
+			<p>この<strong>総プレイアウト回数</strong>が"n"という値です。例えば、レベル３では、一手を出力するために合計して３０００回のプレイアウトを行っていることになります。</p>
+			<p>これに加えて、「モンテカルロ木探索」では、効率的に起こりそうな展開を選択して、深く読むことができます。</p>
+			<p>四隅を取れたら嬉しいといった、ルール以外のオセロの知識を入れずに、ひたすらランダムプレイアウトを行っているだけにもかかわらず、なかなか手強くなりました。</p>
+			<p>"n"を増やすと強くなりますが、単純に計算時間が増えます。したがって、レベルが高くなればなるほど思考時間が長くなるのでご了承ください。終盤に近づくと、一回のプレイアウトをするための手数が短くなるため、思考時間も短くなります。終盤ノータイムされると少し傷つきます。</p>
+			<p>ちなみに作者は、レベル３より少し弱いくらいです。</p>
+			<button class="w3-btn w3-light-grey w3-large w3-right" id="okbtn">OK</button>
+	</div>	
+	<div class="w3-center">
+		<button class="w3-btn w3-large w3-light-grey w3-margin" id="back" style="display:none;">メニューに戻る</button>
+	</div>
   </body>
 </html>

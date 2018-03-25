@@ -81,7 +81,9 @@ $(function () {
                     Math.PI * 2,
                     true
                 );
-                ctx.fillStyle = "gray";
+				if(this.maneger.game.turn == TURN.BLACK) ctx.fillStyle = "#303030";
+				if(this.maneger.game.turn == TURN.WHITE) ctx.fillStyle = "#b0b0b0";
+                //ctx.fillStyle = "gray";
                 ctx.fill();
             }
 
@@ -199,20 +201,29 @@ $(function () {
             if (num == 1) {
                 this.game = new Othello(this.Nsize);
                 this.game.players.push(new Player());
-                this.game.players.push(new CPU(this.game));
+                this.game.players.push(new CPUMonteCarloTree(this.game, 100));
+                //this.game.players.push(new CPU(this.game));
             }
             if (num == 2) {
                 this.game = new Othello(this.Nsize);
                 this.game.players.push(new Player());
-                this.game.players.push(new CPUOkeruRandom(this.game));
+                this.game.players.push(new CPUMonteCarloTree(this.game, 1000));
+                //this.game.players.push(new CPUOkeruRandom(this.game));
             }
             if (num == 3) {
                 this.game = new Othello(this.Nsize);
                 this.game.players.push(new Player());
-                this.game.players.push(new CPUMonteCarloTree(this.game));
+                this.game.players.push(new CPUMonteCarloTree(this.game, 3000));
             }
             if (num == 4) {
                 this.game = new Othello(this.Nsize);
+                this.game.players.push(new Player());
+                this.game.players.push(new CPUMonteCarloTree(this.game, 10000));
+            }
+            if (num == 5) {
+                this.game = new Othello(this.Nsize);
+                this.game.players.push(new Player());
+                this.game.players.push(new CPUMonteCarloTree(this.game, 20000));
             }
             if (num == 11) {
                 //CPU同士戦わせる
@@ -246,6 +257,7 @@ $(function () {
         }
         update_to_next() {
             // 石をひっくり返したあとの処理を色々する。（okeruの更新）
+			if(!this.gameChu) return;
             this.game.refresh_okeru();
             if (this.game.okeru.length == 0) {
                 // 合法手がないとき。
@@ -265,7 +277,8 @@ $(function () {
                 //CPUなら、手を考える。
                 var player = this.game.players[this.game.turn - 1];
                 if (player.iscpu) {
-					if (this.game.players[(3-this.game.turn) - 1].iscpu){
+					//if (this.game.players[(3-this.game.turn) - 1].iscpu){
+					if (false){
 						var te = player.think();
 						this.game.put_disc({ xi: te[0], yi: te[1] });
 						this.update_to_next();
@@ -299,6 +312,7 @@ $(function () {
         }
         showMenu() {
             $(".startbtn").show();
+			$(".cpubtn").hide();
             $("#cnvs").addClass("w3-opacity");
             $("#infobox").hide();
         }
@@ -609,11 +623,15 @@ $(function () {
 
     class CPUMonteCarloTree extends CPU {
         //モンテカルロ木探索を実装した。
+		constructor(game, nmax){
+			super(game);
+			this.nmax = nmax;
+		}
         setTrial(n) {
             this.n = n;
         }
         think() {
-            var nmax = 3000;
+            var nmax = this.nmax || 3000;
             var n_total = 0;
             var bf = new BoardFuture(this.game.board, this.game.turn, this.game.Nsize);
             var origin = new Node(null, bf, this.game.turn);
@@ -640,6 +658,15 @@ $(function () {
 				if(r == 0) r = 0.0001;
 				if(r == 1) r = 1 - 0.0001;
 				console.log("評価値: " + ( -600 * Math.log((1-r) / r)));
+				
+				for(var j=0; j<maxchild.children.length; j++){
+					var child = maxchild.children[j];
+					var r = child.results[this.game.turn] / child.n;
+					console.log("   勝率： " + r + "     win = " + child.results[this.game.turn] + " n = " + child.n);
+					if(r == 0) r = 0.0001;
+					if(r == 1) r = 1 - 0.0001;
+					console.log("   評価値: " + ( -600 * Math.log((1-r) / r)));
+				}
 				if(maxi == i) console.log(" ===============↑↑↑↑↑↑↑↑=============== ");
 			}
             //origin.printAllTree(2);
@@ -665,7 +692,7 @@ $(function () {
                 this.isorigin = true;
             } else {
                 this.depth = this.parent.depth + 1;
-				console.log(this.depth);
+				//console.log(this.depth);
                 this.isorigin = false;
             }
             this.ucb1 = this.calc_ucb1();
@@ -962,6 +989,7 @@ $(function () {
         maneger.start_human();
     });
     $("#vsCPU").click(() => {
+		$("#back").show();
 		$(".startbtn").hide();
 		$(".cpubtn").show();
     });
@@ -974,14 +1002,35 @@ $(function () {
     $("#vsCPU3").click(() => {
         maneger.start_cpu(3);
     });
+    $("#vsCPU4").click(() => {
+        maneger.start_cpu(4);
+    });
+    $("#vsCPU5").click(() => {
+        maneger.start_cpu(5);
+    });
     $("#CPUvsCPU").click(() => {
         maneger.start_cpu(11);
+		$("#back").show();
     });
+	$("#whatisn").click(() => {
+		$("#setsumei").show();
+		$(".cpubtn").hide();
+	});
+	$("#okbtn").click(() => {
+		$("#setsumei").hide();
+		$(".cpubtn").show();
+	});
+	$("#again").click( () => {
+        maneger.start_cpu(11);
+		$("#back").show();
+	});
     $("#back").click(() => {
+		$("#back").hide();
         $(".simulation").hide();
 		$(".cpubtn").hide();
         $(".startbtn").show();
 		$("#cnvs").addClass("w3-opacity");
+		maneger.gameChu = false;
     });
 
     function render() {
