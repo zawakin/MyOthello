@@ -47,6 +47,19 @@ $(function () {
             }
             ctx.closePath();
             ctx.stroke();
+			
+			if(this.maneger.lastte != null){
+				var xi = this.maneger.lastte[0];
+				var yi = this.maneger.lastte[1];
+				ctx.rect(this.cellsize + (xi - 1/2) * this.cellsize + 1,
+						 this.cellsize + (yi - 1/2) * this.cellsize + 1,
+						 this.cellsize - 2,
+						 this.cellsize - 2
+						 )
+				ctx.fillStyle = "rgba(128, 128, 128, 0.8)";
+				ctx.fill();
+						 
+			}
             // draw discs
             for (var xi = 0; xi < this.Nsize; xi++) {
                 for (var yi = 0; yi < this.Nsize; yi++) {
@@ -89,13 +102,13 @@ $(function () {
 
             if (this.passtimer > 0) {
                 var ss = "";
-                if (this.passturn == TURN.BLACK) ss = "Black";
-                if (this.passturn == TURN.WHITE) ss = "White";
+                if (this.passturn == TURN.BLACK) ss = "黒";
+                if (this.passturn == TURN.WHITE) ss = "白";
                 var ctx = this.ctx;
                 ctx.fillStyle = "red";
                 ctx.textAlign = "center";
                 ctx.font = "50px sans-serif";
-                ctx.fillText(ss + ": Pass", this.width / 2, this.width / 2, 1000);
+                ctx.fillText(ss + "：　パス", this.width / 2, this.width / 2, 1000);
                 this.passtimer -= 1;
             }
 
@@ -198,16 +211,17 @@ $(function () {
         }
         start_cpu(num) {
             this.gameChu = true;
+			$("#myChartContainer").show();
             if (num == 1) {
                 this.game = new Othello(this.Nsize);
                 this.game.players.push(new Player());
-                this.game.players.push(new CPUMonteCarloTree(this.game, 100));
+                this.game.players.push(new CPUMonteCarloTreeHashi(this.game, 100));
                 //this.game.players.push(new CPU(this.game));
             }
             if (num == 2) {
                 this.game = new Othello(this.Nsize);
                 this.game.players.push(new Player());
-                this.game.players.push(new CPUMonteCarloTree(this.game, 1000));
+                this.game.players.push(new CPUMonteCarloTreeHashi(this.game, 1000));
                 //this.game.players.push(new CPUOkeruRandom(this.game));
             }
             if (num == 3) {
@@ -218,26 +232,38 @@ $(function () {
             if (num == 4) {
                 this.game = new Othello(this.Nsize);
                 this.game.players.push(new Player());
-                this.game.players.push(new CPUMonteCarloTree(this.game, 10000));
+                this.game.players.push(new CPUMonteCarloEval(this.game, 10000));
             }
             if (num == 5) {
                 this.game = new Othello(this.Nsize);
+                //this.game.players.push(new CPUEval(this.game));
+                //this.game.players.push(new CPUMonteCarloTreeHashi(this.game, 1000));
+                //this.game.players.push(new CPUMonteCarloEval(this.game, 10000, 30, 5, 0.4));
                 this.game.players.push(new Player());
-                this.game.players.push(new CPUMonteCarloTree(this.game, 20000));
+                this.game.players.push(new CPUMonteCarloEval(this.game, 20000, 30, 5, 0.4));
+                //this.game.players.push(new CPUMonteCarloEval(this.game, 6000, 30, 5, 0.4));
+                //this.game.players.push(new CPUMonteCarloTreeHashi(this.game, 10000, 30, 5, 0.4));
+                //this.game.players.push(new CPUMonteCarloTreeHashi(this.game, 30000, 10, 1, 1));
+                //this.game.players.push(new CPUMonteCarloTreeHashi(this.game, 30000, 30, 5, 0.4));
             }
             if (num == 11) {
                 //CPU同士戦わせる
                 $(".startbtn").hide();
                 $(".simulation").show();
-                this.game = new Othello(this.Nsize);
-                this.game.players.push(new CPU(this.game));
-                this.game.players.push(new CPU(this.game));
                 var results = [0, 0, 0];
                 var ctx = this.gui.ctx;
                 this.simulating = true;
-                for (var i = 0; i < 1000; i++) {
-                    var result = this.game.players[0].simulate(this.Nsize, this.game.board, this.game.turn);
+				//players.push(new CPUEval(game));
+                for (var i = 0; i < 100; i++) {
+					var game = new Othello(this.Nsize);
+					var cpu = new CPU(game);
+					var players = [];
+					players.push(new CPU(game, 100, 30, 5, 0.4));
+					players.push(new CPU(game, 100, 30, 5, 0.4));
+					//players.push(new CPUEval(game));
+					var result = cpu.simulate_from_players(game.Nsize, game.board, game.turn, game, players);
                     results[result] += 1;
+					console.log(results);
                 }
                 $("#label_sim").html("黒: " + results[1] + "<br/>白: " + results[2] + " <br/>引き分け: " + results[0] + "<br/>" + "黒の勝率: " + results[1] / 10 + " %<br/>");
                 return;
@@ -288,6 +314,8 @@ $(function () {
 							maneger.game.put_disc({ xi: te[0], yi: te[1] });
 							maneger.update_to_next();
 							maneger.gui.thinking = false;
+							maneger.updateData();
+							maneger.lastte = te;
 						}
 						this.gui.showThinking();
 						setTimeout(Temp, 300, this, player);
@@ -299,6 +327,41 @@ $(function () {
                 this.finish();
             }
         }
+		updateData(){
+			var datasets = [];
+			var colors = ["PINK", window.chartColors.red, window.chartColors.blue];
+			var labels = ["None", "CPU（黒）", "CPU（白）"];
+			for(var i=0; i<this.game.players.length; i++){
+				var player = this.game.players[i];
+				if(player.iscpu){
+					if(player.has_value_history == null) continue;
+					var value_history = player.value_history;
+					if(i+1 == TURN.WHITE){
+						value_history = [];
+						for(var j=0; j<player.value_history.length; j++){
+							value_history[j] = - player.value_history[j];
+						}
+					}
+					var points = [];
+					for(var j=0; j<value_history.length; j++){
+						var offset = 1;
+						if(i+1 == TURN.WHITE) offset = 2;
+						points.push({x: 2*j + offset, y: value_history[j]});
+					}
+					var data = {
+						label: labels[i + 1],
+						data: points,
+						borderColor: colors[i + 1],
+						backgroundColor: colors[i + 1],
+						borderWidth: 1,
+						fill: false,
+					};
+					datasets.push(data);
+				}
+			}
+			myChart.data.datasets = datasets;
+			myChart.update();
+		}
         finish() {
             var ncolors = this.game.count_colors();
             var result = TURN.NONE;
@@ -459,7 +522,14 @@ $(function () {
                 }
             }
             return temp;
-        }
+        }		
+		isYosumi(te){
+			if(te[0] == 0 && te[1] == 0) return true;
+			if(te[0] == this.Nsize-1 && te[1] == 0) return true;
+			if(te[0] == 0 && te[1] == this.Nsize-1) return true;
+			if(te[0] == this.Nsize-1 && te[1] == this.Nsize-1) return true;
+			return false;
+		}
     }
 
     class Player {
@@ -620,21 +690,82 @@ $(function () {
             return okeru[maxi];
         }
     }
+	class CPURandomHashi extends CPU{
+		think(){
+			var n = 4; //四隅は打ちやすくする。
+			var myokeru = [];
+			for(var i=0; i<this.game.okeru.length; i++){
+				if(this.game.isYosumi(this.game.okeru[i])) {
+					for(var j=0; j<n; j++){
+						myokeru.push(this.game.okeru[i]);
+					}	
+				}else{
+					myokeru.push(this.game.okeru[i]);
+				}
+			}
+            return myokeru[Math.floor(Math.random() * myokeru.length)];
+		}
+	}
+	var BP = [[45, -11, 4, -1, -1, 4, -11, 45],
+			  [-11, -16, -1, -3, -3, -1, -16, -11],
+			  [4, -1, 2, -1, -1, 2, -1, 4],
+			  [-1, -3, -1, 0, 0, -1, -3, -1],
+			  [-1, -3, -1, 0, 0, -1, -3, -1],
+			  [4, -1, 2, -1, -1, 2, -1, 4],
+			  [-11, -16, -1, -3, -3, -1, -16, -11],
+			  [45, -11, 4, -1, -1, 4, -11, 45]
+			  ];
+	class CPUEval extends CPU{
+		//塩田（２０１２）の評価関数を用いる
+		
+		think(){
+			var okeru = this.game.okeru;
+			var evals = [];
+			var maxval = -100000;
+			var maxi = 0;
+			for(var i=0; i<okeru.length; i++){
+				var te = okeru[i];
+				//手の場所の価値
+				var _bp = 6 * Math.random() * BP[te[1]][te[0]];
+				//確定石かどうか
+				
+				//
+				evals.push(_bp);
+				if(maxval < _bp){
+					maxval = _bp;
+					maxi = i;
+				}
+			}
+			return okeru[maxi];
+		}
+	}
 
     class CPUMonteCarloTree extends CPU {
         //モンテカルロ木探索を実装した。
-		constructor(game, nmax){
+		constructor(game, nmax, thres, mythres, C){
 			super(game);
 			this.nmax = nmax;
+			this.thres = thres || 30;
+			this.mythres = mythres || 5;
+			this.C = C || 0.4;
+			this.value_history = [];
+			this.has_value_history = true;
 		}
         setTrial(n) {
             this.n = n;
-        }
+        }        
+		simulate(Nsize, board, turn) {
+            var game = new Othello(Nsize);
+            var players = [];
+			players.push(new CPU(game));
+            players.push(new CPU(game));
+			return this.simulate_from_players(Nsize, board, turn, game, players);
+		}
         think() {
             var nmax = this.nmax || 3000;
             var n_total = 0;
             var bf = new BoardFuture(this.game.board, this.game.turn, this.game.Nsize);
-            var origin = new Node(null, bf, this.game.turn);
+            var origin = new Node(null, bf, this.game.turn, this.thres, this.mythres, this.C);
             origin.expand();
             while (n_total < nmax) {
                 n_total += 1;
@@ -649,8 +780,12 @@ $(function () {
             }
             var maxi = origin.getIndexMaxN();
 			var maxchild = origin.children[maxi];
-			console.log("");
-			for(var i=0; i<origin.children.length; i++){
+			var r = maxchild.results[this.game.turn] / maxchild.n;
+			if(r == 0) r = 0.0001;
+			if(r == 1) r = 1 - 0.0001;
+			this.value_history.push(( -600 * Math.log((1-r) / r)));
+			//console.log("");
+			for(var i=1000; i<origin.children.length; i++){
 				var child = origin.children[i];
 				var r = child.results[this.game.turn] / child.n;
 				if(maxi == i) console.log(" ===============↓↓↓↓↓↓↓↓=============== ");
@@ -674,8 +809,26 @@ $(function () {
         }
     }
 
+	class CPUMonteCarloTreeHashi extends CPUMonteCarloTree{
+		simulate(Nsize, board, turn) {
+            var game = new Othello(Nsize);
+            var players = [];
+			players.push(new CPURandomHashi(game));
+            players.push(new CPURandomHashi(game));
+			return this.simulate_from_players(Nsize, board, turn, game, players);
+		}
+	}
+	class CPUMonteCarloEval extends CPUMonteCarloTree{
+		simulate(Nsize, board, turn) {
+            var game = new Othello(Nsize);
+            var players = [];
+			players.push(new CPUEval(game));
+            players.push(new CPUEval(game));
+			return this.simulate_from_players(Nsize, board, turn, game, players);
+		}
+	}
     class Node {
-        constructor(myParent, bf, originturn) {
+        constructor(myParent, bf, originturn, thres, mythres, C) {
             this.parent = myParent;
             this.originturn = originturn; // 注： originのturn。
             this.myturn = bf.turn;
@@ -683,7 +836,9 @@ $(function () {
             this.results = [0, 0, 0];
             this.n = 0;  //そのノードの試行回数
             this.n_total = 0;  //兄弟ノードの試行回数の合計。
-            this.thres = 30;
+            this.thres = thres;
+			this.mythres = mythres;
+			this.C = C;
             this.bf = bf;
             this.isleaf = true; // expand時にfalseにする
             this.hashi = false;
@@ -749,14 +904,14 @@ $(function () {
             var n = this.n;
             //if(n < 5) return 400000;
 			
-			var C = 0.4;
+			var C = this.C;
 			
 			if(this.bf.count_all_piece() < 40){
 				//序盤はまんべんなく読む
-				if(n <= 5) return 5;
+				if(n <= this.mythres) return 5;
 			}else{
 				//終盤は良い手を深く読む
-				if(n <= 5) return 5;
+				if(n <= this.mythres) return 5;
 			}
 			
 			
@@ -830,7 +985,7 @@ $(function () {
                 bf.put_disc(te[0], te[1]);
                 bf.turn = 3 - bf.turn;
                 bf.update_okeru();
-                var child = new Node(this, bf, this.originturn);
+                var child = new Node(this, bf, this.originturn, this.thres, this.mythres, this.C);
                 child.te = te;
                 this.children.push(child);
             }
@@ -844,7 +999,7 @@ $(function () {
         constructor(board, turn, Nsize) {
             this.future = [];
             this.Nsize = Nsize;
-            this.future.push(this.copy_board_from(board));
+            //this.future.push(this.copy_board_from(board));
             this.board = this.copy_board_from(board);
             this.turn = turn;
             this.update_okeru();

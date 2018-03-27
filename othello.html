@@ -6,14 +6,15 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1">
     <title>オセロのページ</title>
     <script src="./js/jquery-3.2.1.min.js" charset="utf-8"></script>
+    <script src="./js/Chart.js" charset="utf-8"></script>
     <script src="./js/othello.js" charset="utf-8"></script>
 	<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
 	<style>
 		.startbtn{
-			font-size: 4vw;
+			font-size: 20px;
 		}
 		.cpubtn{
-			font-size: 3vw;
+			font-size: 20px;
 		}
 		p{
 			font-size: 16px;
@@ -24,7 +25,7 @@
 	<script>
 		var ww = window.innerWidth;
 	</script>
-	<div class="w3-display-container" style="max-width: 600px; width: 100%;">
+	<div class="w3-display-container w3-mobile" style="max-width: 600px; width: 100%;">
 		
 		<canvas id="cnvs" width=600 height=600 class="w3-opacity"></canvas>
 		<div class="w3-display-middle w3-center">
@@ -43,10 +44,72 @@
 				<label class="w3-xlarge w3-margin" id="label_sim"></label>
 				<button class="w3-btn w3-light-grey w3-margin" id="again">もう一度</button>
 			</div>
+		</div>		
+		<div class="w3-container w3-mobile" id="myChartContainer" style="max-width: 600px; width: 100%; height: 300px; display: none;">
+			<canvas id="myChart" width="400" height="200" style=""></canvas>
 		</div>
 		
 
-	</div>			
+			
+	</div>
+	
+	<script>
+	window.chartColors = {
+		red: 'rgb(255, 99, 132)',
+		orange: 'rgb(255, 159, 64)',
+		yellow: 'rgb(255, 205, 86)',
+		green: 'rgb(75, 192, 192)',
+		blue: 'rgb(54, 162, 235)',
+		purple: 'rgb(153, 102, 255)',
+		grey: 'rgb(201, 203, 207)'
+	};
+
+	var ntesuu = [];
+	for(var i=0; i<100; i++) ntesuu[i] = i + 1;
+	var myChart = new Chart("myChart", {
+			type: "line",
+			data: {
+				labels: ntesuu,
+				datasets: [{"label": "CPU", data: [0]}],
+			},
+			options: {
+			responsive: true,
+			title: {
+				display: true,
+				text: '評価値推移（上に行くほど黒が良い）'
+			},
+			animation: {
+				duration: 0
+			},
+			tooltips: {
+				mode: 'index',
+				intersect: false,
+			},
+			hover: {
+				mode: 'nearest',
+				intersect: true
+			},
+			scales: {
+				xAxes: [{
+					ticks: {min: 0, max: 65},
+					display: true,
+					scaleLabel: {
+						display: true,
+						labelString: '手数'
+					}
+				}],
+				yAxes: [{
+					ticks: {min: -2000, max: 2000},
+					display: true,
+					scaleLabel: {
+						display: true,
+						labelString: '評価値'
+					}
+				}]
+			}
+		}
+		});
+</script>
 	<div class="w3-container w3-light-grey w3-padding" id="setsumei" style="display: none; position: fixed; top: 0px; max-width: 600px; width: 100%; overflow: auto; height: 100vh;">
 			<h4 class="w3-indigo w3-padding">"n"について</h4>
 			<p>このCPUは、「モンテカルロ木探索」という手法で探索をしています。基本的にモンテカルロアルゴリズムでは、候補手を打った局面からランダムプレイヤー同士が勝敗が付くまでシミュレーションを行います。これを<strong>プレイアウト</strong>と言います。各候補手についてプレイアウトをたくさん行うことで、勝率を求め、高い勝率の候補手を手として出力するようになっています。</p>
