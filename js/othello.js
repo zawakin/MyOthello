@@ -48,7 +48,7 @@ $(function () {
             ctx.closePath();
             ctx.stroke();
 			
-			if(this.maneger.lastte != null){
+			if(this.maneger.lastte != null && this.maneger.gameChu){
 				var xi = this.maneger.lastte[0];
 				var yi = this.maneger.lastte[1];
 				ctx.rect(this.cellsize + (xi - 1/2) * this.cellsize + 1,
@@ -215,19 +215,19 @@ $(function () {
             if (num == 1) {
                 this.game = new Othello(this.Nsize);
                 this.game.players.push(new Player());
-                this.game.players.push(new CPUMonteCarloTreeHashi(this.game, 100));
+                this.game.players.push(new CPUMonteCarloTreeEval(this.game, 100));
                 //this.game.players.push(new CPU(this.game));
             }
             if (num == 2) {
                 this.game = new Othello(this.Nsize);
                 this.game.players.push(new Player());
-                this.game.players.push(new CPUMonteCarloTreeHashi(this.game, 1000));
+                this.game.players.push(new CPUMonteCarloEval(this.game, 1000));
                 //this.game.players.push(new CPUOkeruRandom(this.game));
             }
             if (num == 3) {
                 this.game = new Othello(this.Nsize);
                 this.game.players.push(new Player());
-                this.game.players.push(new CPUMonteCarloTree(this.game, 3000));
+                this.game.players.push(new CPUMonteCarloEval(this.game, 3000));
             }
             if (num == 4) {
                 this.game = new Othello(this.Nsize);
@@ -278,6 +278,7 @@ $(function () {
                     // クリックしたところが合法手なら石をひっくり返す
                     this.game.put_disc(Imouse);
                     this.update_to_next();
+					this.lastte = [Imouse.xi, Imouse.yi];
                 }
             }
         }
@@ -1186,6 +1187,7 @@ $(function () {
         $(".startbtn").show();
 		$("#cnvs").addClass("w3-opacity");
 		maneger.gameChu = false;
+		maneger.lastte = null;
     });
 
     function render() {
