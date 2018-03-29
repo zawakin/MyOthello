@@ -215,7 +215,7 @@ $(function () {
             if (num == 1) {
                 this.game = new Othello(this.Nsize);
                 this.game.players.push(new Player());
-                this.game.players.push(new CPUMonteCarloTreeEval(this.game, 100));
+                this.game.players.push(new CPUMonteCarloEval(this.game, 100));
                 //this.game.players.push(new CPU(this.game));
             }
             if (num == 2) {
